@@ -179,13 +179,14 @@ function bubble(text,who,heard,card){
   if(who==='bot'&&VOICE_ON) speak(text);
   return d;
 }
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function renderCard(c){
   const el=document.createElement('div');
   const cls=c.type==='success'?'green':c.type==='reject'?'red':c.type==='info'?'blue':'';
   el.className='rcard '+cls;
-  el.innerHTML=`<div class="t">${c.emoji||''} ${c.title||''}</div>
-    <ul>${(c.facts||[]).map(f=>`<li>${f}</li>`).join('')}</ul>
-    ${c.source?`<div class="src">ℹ️ ${c.source}</div>`:''}`;
+  el.innerHTML=`<div class="t">${esc(c.emoji||'')} ${esc(c.title||'')}</div>
+    <ul>${(c.facts||[]).map(f=>`<li>${esc(f)}</li>`).join('')}</ul>
+    ${c.source?`<div class="src">ℹ️ ${esc(c.source)}</div>`:''}`;
   if(c.type==='success'&&TID) el.innerHTML+=`<a class="pdfbtn" href="/pdf/${TID}.pdf" target="_blank">📄 Download form PDF</a>`;
   return el;
 }
@@ -231,7 +232,7 @@ function pushSMS(body){
   const ph=screen.querySelector('.placeholder'); if(ph)ph.remove();
   const d=document.createElement('div'); d.className='sms';
   const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  d.innerHTML=`<div class="from">SAHAYI · ${t}</div><div>${body}</div><div class="time">SMS ✓✓</div>`;
+  d.innerHTML=`<div class="from">SAHAYI · ${t}</div><div>${esc(body)}</div><div class="time">SMS ✓✓</div>`;
   screen.prepend(d);
 }
 async function refreshImpact(){ const r=await fetch('/api/impact'); renderImpact(await r.json()); }
