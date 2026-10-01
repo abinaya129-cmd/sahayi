@@ -63,6 +63,45 @@ STRINGS_EN = {
     "fraud": "Remember: the government never asks for OTP or money. This call is from SAHAYI.",
 }
 
+# Tamil + Telugu: the most-heard strings so a Tamil user never hears Hindi.
+# Missing keys fall back to Hindi (graceful, never empty).
+STRINGS_TA = {
+    "welcome": "{hello}! நான் SAHAYI. எந்த அரசு திட்டம் வேண்டும் சொல்லுங்கள்.",
+    "welcome_back": "{hello} {name}! மீண்டும் வருகைக்கு வரவேற்கிறேன். என்ன உதவி வேண்டும்?",
+    "which_scheme": "எந்த திட்டம்? சொல்லுங்கள் - விவசாயம், வீடு, கேஸ், வங்கி, வேலை.",
+    "not_understood": "மன்னிக்கவும், புரியவில்லை. மீண்டும் சொல்லுங்கள்.",
+    "language_set": "சரி, இனி {lang} -ல் பேசுவோம்.",
+    "yes_no": "ஆம் அல்லது இல்லை என பதில் சொல்லுங்கள்.",
+    "eligible": "வாழ்த்துகள்! நீங்கள் {scheme} -க்கு தகுதியுடையவர். பலன்: {benefit}",
+    "not_eligible": "இந்த திட்டத்திற்கு தற்போது தகுதி இல்லை. காரணம்: {reason}",
+    "docs_msg": "தேவையான ஆவணங்கள்: {docs}",
+    "form_ready": "உங்கள் விண்ணப்பம் தயார். PDF லிங்க் SMS-ல் அனுப்பிவிட்டேன்.",
+    "tracking_msg": "கண்காணிப்பு எண்: {tid}. எந்த CSC-லும் காட்டுங்கள்.",
+    "replay": "மீண்டும் கேட்க 'repeat' என்று சொல்லுங்கள்.",
+    "fraud": "எச்சரிக்கை: அரசு ஒருபோதும் OTP அல்லது பணம் கேட்காது. இது SAHAYI அழைப்பு.",
+}
+
+STRINGS_TE = {
+    "welcome": "{hello}! నేను SAHAYI. ఏ ప్రభుత్వ పథకం కావాలో చెప్పండి.",
+    "welcome_back": "{hello} {name}! తిరిగి రావడం చాలా సంతోషం. ఏమి సహాయం కావాలి?",
+    "which_scheme": "ఏ పథకం? చెప్పండి - వ్యవసాయం, ఇల్లు, గ్యాస్, బ్యాంక్, పని.",
+    "not_understood": "క్షమించండి, అర్థం కాలేదు. మళ్లీ చెప్పండి.",
+    "language_set": "సరే, ఇకపై {lang}లో మాట్లాడతాం.",
+    "yes_no": "అవును లేదా కాదు అని చెప్పండి.",
+    "eligible": "అభినందనలు! మీరు {scheme}కి అర్హులు. లబ్ధి: {benefit}",
+    "not_eligible": "ఈ పథకానికి ప్రస్తుతం అర్హత లేదు. కారణం: {reason}",
+    "docs_msg": "కావలసిన డాక్యుమెంట్లు: {docs}",
+    "form_ready": "మీ ఫారం సిద్ధం. PDF లింక్ SMSలో పంపాను.",
+    "tracking_msg": "ట్రాకింగ్ ID: {tid}. ఏ CSCలో అయినా చూపించండి.",
+    "replay": "మళ్లీ వినడానికి 'repeat' అని చెప్పండి.",
+    "fraud": "జాగ్రత్త: ప్రభుత్వం ఎప్పుడూ OTP లేదా డబ్బు అడగదు. ఇది SAHAYI కాల్.",
+}
+
+
+def strings_for(lang: str) -> dict:
+    """Best string table for a language, Hindi as final fallback."""
+    return {"en": STRINGS_EN, "ta": STRINGS_TA, "te": STRINGS_TE}.get(lang, STRINGS)
+
 # Fuzzy lexicons. Keys: intents & scheme slugs. Values: keyword variants
 # across scripts + romanizations. Matched with token-level fuzzy ratio.
 LEXICON = {

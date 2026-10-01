@@ -11,7 +11,7 @@ import uuid
 
 from . import db, nlu
 from .config import settings
-from .languages import LANGUAGES, STRINGS, STRINGS_EN, normalize
+from .languages import LANGUAGES, STRINGS, STRINGS_EN, normalize, strings_for
 from .rules import evaluate, reason_text
 from .schemes import SCHEMES
 from .services import impact, sms
@@ -30,7 +30,7 @@ _TRACK_RE = re.compile(r"\bSAH[-\s]?[A-Z0-9]{6}\b", re.IGNORECASE)
 
 
 def _t(key: str, _lang: str = "hi", **kw) -> str:
-    src = STRINGS_EN if _lang == "en" else STRINGS
+    src = strings_for(_lang)
     return src.get(key, STRINGS.get(key, key)).format(**kw)
 
 
@@ -108,6 +108,21 @@ class Conversation:
         self.state, self.language = "GREETING", "hi"
         self.ctx = {"phone": phone}
         user = db.get_user(phone) if phone else None
+        # Returning callers resume in THEIR language - no Hindi reset, no picker
+        saved_lang = (user or {}).get("language")
+        if saved_lang and saved_lang in LANGUAGES and saved_lang != "hi":
+            self.language = saved_lang
+            hello = LANGUAGES[saved_lang]["hello"]
+            name = user.get("name", "")
+            if name:
+                text = _t("welcome_back", saved_lang, hello=hello, name=name)
+            else:
+                text = _t("welcome", saved_lang, hello=hello)
+            self._remember(fraud_shield_shown=True)
+            return self._reply(text, state="SCHEME",
+                               options=_scheme_options(saved_lang),
+                               chips=_scheme_chips(),
+                               fraud_shield=impact.fraud_shield())
         hello = LANGUAGES["hi"]["hello"]
         if user and user.get("name"):
             text = _t("welcome_back", "hi", hello=hello, name=user["name"])
@@ -160,6 +175,8 @@ class Conversation:
         if bare_lang and bare_lang != self.language and len(normalize(text).split()) <= 2:
             self.language = bare_lang
             self._remember(language_chosen=bare_lang)
+            if self.phone:
+                db.upsert_user(self.phone, language=bare_lang)
             en = bare_lang == "en"
             if self.state == "INTERVIEW" and self.ctx.get("scheme"):
                 qs = SCHEMES[self.ctx["scheme"]]["questions_en"] if en and "questions_en" in SCHEMES[self.ctx["scheme"]] else SCHEMES[self.ctx["scheme"]]["questions"]
@@ -235,6 +252,9 @@ class Conversation:
                                " Bhasha boliye - Hindi, Tamil, Telugu, English...")
         self.language = code
         self._remember(language_chosen=code)
+        # Persist BY PHONE: next session starts in this language (no Hindi reset)
+        if self.phone:
+            db.upsert_user(self.phone, language=code)
         name = LANGUAGES[code]["name"]
         return self._reply(_t("language_set", self.language, lang=name), state="SCHEME",
                            options=_scheme_options(self.language),

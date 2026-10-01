@@ -111,7 +111,7 @@
   <section class="card">
     <h2>🗣️ Voice Assistant
       <span style="margin-left:auto;font-size:.72rem;color:#64748b" id="sttHint">mic: Chrome/Edge</span>
-      <button class="vox" id="vox" title="Toggle SAHAYI's voice">🔇</button>
+      <button class="vox on" id="vox" title="Toggle SAHAYI's voice">🔊</button>
     </h2>
     <div class="chat" id="chat"></div>
     <div class="fraud" id="fraud"></div>
@@ -156,7 +156,8 @@
 <script>
 const $=id=>document.getElementById(id);
 const chat=$('chat'), opts=$('opts'), chipsEl=$('chips'), screen=$('smsScreen');
-let SID=null, PHONES='9999'+Math.floor(100000+Math.random()*899999), TID=null, LANG='hi', VOICE_ON=false;
+// Voice ON by default: a woman who cannot READ must still HEAR everything.
+let SID=null, PHONES='9999'+Math.floor(100000+Math.random()*899999), TID=null, LANG='hi', VOICE_ON=true;
 const STEPS=[["👋","Start"],["🌐","Language"],["🌾","Scheme"],["❓","Q&A"],["📄","Form"],["🚚","Track"]];
 
 /* ---------------- rail ---------------- */
@@ -188,12 +189,15 @@ function renderCard(c){
   if(c.type==='success'&&TID) el.innerHTML+=`<a class="pdfbtn" href="/pdf/${TID}.pdf" target="_blank">📄 Download form PDF</a>`;
   return el;
 }
+const SPEECH_LANG={en:'en-IN',hi:'hi-IN',ta:'ta-IN',te:'te-IN',kn:'kn-IN',ml:'ml-IN',mr:'mr-IN',gu:'gu-IN',bn:'bn-IN',pa:'pa-IN',ur:'ur-IN',or:'or-IN',as:'as-IN'};
 function speak(text){
   try{
     if(!window.speechSynthesis||!VOICE_ON) return;
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text.replace(/[#*🌿🏠🔥🌾🏦👷🔨🎓🛵📱☀️🏥🚁💼🤝📋💰📄]/g,''));
-    u.lang={en:'en-IN',ta:'ta-IN',te:'te-IN'}[LANG]||'hi-IN'; u.rate=.95;
+    u.lang=SPEECH_LANG[LANG]||'hi-IN'; u.rate=.95;
+    const v=speechSynthesis.getVoices().find(v=>v.lang.startsWith((SPEECH_LANG[LANG]||'').slice(0,2)));
+    if(v) u.voice=v;
     speechSynthesis.speak(u);
   }catch(e){}
 }
@@ -283,7 +287,7 @@ if(SR){
   rec.onerror=()=>{$('mic').classList.remove('rec');listening=false;};
   $('mic').onclick=()=>{ if(listening){rec.stop();return;}
     speechSynthesis&&speechSynthesis.cancel();
-    rec.lang={en:'en-IN',ta:'ta-IN',te:'te-IN'}[LANG]||'hi-IN';
+    rec.lang=SPEECH_LANG[LANG]||'hi-IN';
     try{rec.start();listening=true;$('mic').classList.add('rec');}catch(e){} };
 }else{ $('mic').onclick=()=>alert('Use Chrome or Edge for live mic, or type your answer.'); }
 
@@ -319,6 +323,8 @@ function autoDemo(){
   resetAll().then(()=>{ SCRIPT.forEach(step=>{ step.t=setTimeout(step.do, step.d); }); });
 }
 (async function boot(){
+  // warm the voice list (browsers load voices asynchronously)
+  if(window.speechSynthesis){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }
   const h=await (await fetch('/api/health')).json();
   $('mode').textContent=h.speech.stt==='google'?'production-voice':'demo-mode';
   renderImpact(h.impact); renderRail('LANGUAGE'); renderChips([]);
