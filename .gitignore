@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# SAHAYI runtime artifacts
+*.db
+sahayi.db
+test_*.db
+static/generated/
+uvicorn.log
+*.log
+
+# Freebuff workspace metadata
+.freebuff/
+
+# Env / secrets (add real ones here - never commit keys!)
+.env
+.env.local
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
