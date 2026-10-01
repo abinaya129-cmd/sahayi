@@ -23,3 +23,7 @@ uvicorn.log
 # OS / editor noise
 .DS_Store
 Thumbs.db
+
+# Duplicated early prototype kept locally, not part of the app
+files/
+files.zip

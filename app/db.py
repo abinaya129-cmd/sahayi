@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS sms_outbox (
   kind TEXT DEFAULT 'info',
   created_at REAL
 );
+
 CREATE TABLE IF NOT EXISTS impact_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   phone TEXT,
@@ -68,12 +69,21 @@ CREATE TABLE IF NOT EXISTS impact_events (
   meta TEXT DEFAULT '{}',
   created_at REAL
 );
+-- indexes last: every table above must exist before indexing it
+CREATE INDEX IF NOT EXISTS idx_sms_phone ON sms_outbox(phone, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_sessions_phone ON sessions(phone);
+CREATE INDEX IF NOT EXISTS idx_impact_phone ON impact_events(phone);
 """
 
 
 def _connect() -> sqlite3.Connection:
     conn = sqlite3.connect(settings.DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    # WAL lets readers work while a write commits; NORMAL is crash-safe
+    # for our per-turn commits and noticeably faster than the default.
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA synchronous=NORMAL")
+    conn.execute("PRAGMA busy_timeout=5000")
     return conn
 
 

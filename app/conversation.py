@@ -7,11 +7,10 @@ unclear answers are re-asked (never a dead end), the fraud-shield PSA plays on
 first contact, and any 'SAH-XXXXXX' utterance fetches live status.
 """
 import re
-import uuid
 
 from . import db, nlu
 from .config import settings
-from .languages import LANGUAGES, STRINGS, STRINGS_EN, normalize, strings_for
+from .languages import LANGUAGES, STRINGS, normalize, strings_for
 from .rules import evaluate, reason_text
 from .schemes import SCHEMES
 from .services import impact, sms
@@ -22,8 +21,8 @@ from .services.csc import locate
 from .services.forms import generate_form_pdf
 from .services.tracking import _STEPS_EN
 
-STATES = ["GREETING", "LANGUAGE", "SCHEME", "INTERVIEW", "VERDICT", "DOCS",
-          "PROFILE", "FORM", "TRACKING", "CSC", "CLOSED"]
+STATES = ("GREETING", "LANGUAGE", "SCHEME", "INTERVIEW", "VERDICT", "DOCS",
+          "PROFILE", "FORM", "TRACKING", "CSC", "CLOSED")
 
 
 _TRACK_RE = re.compile(r"\bSAH[-\s]?[A-Z0-9]{6}\b", re.IGNORECASE)
@@ -519,7 +518,10 @@ def _language_options():
 
 
 def _scheme_options(lang: str = "hi"):
-    return [{"label": f"{s['emoji']} {s['name']} - {_fmt_benefit(s['benefit_inr'])}",
+    """Bilingual scheme menu labels (English benefit wording when lang='en')."""
+    en = lang == "en"
+    return [{"label": f"{s['emoji']} {s['name']} - "
+                      f"{(s.get('benefit_en') or s['benefit_text']) if en else _fmt_benefit(s['benefit_inr'])}",
              "value": slug, "action": "scheme"} for slug, s in SCHEMES.items()]
 
 

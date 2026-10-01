@@ -21,6 +21,7 @@
 """
 import os
 import uuid
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, Response
@@ -35,15 +36,18 @@ from .services import impact, speech
 from .services.csc import locate
 from .services.sms import inbox, twilio_enabled
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Modern replacement for the deprecated @app.on_event('startup')."""
+    db.init_db()
+    yield
+
+
 app = FastAPI(title="SAHAYI", version=settings.VERSION,
-              description=settings.TAGLINE)
+              description=settings.TAGLINE, lifespan=lifespan)
 os.makedirs(settings.PDF_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-@app.on_event("startup")
-def _startup() -> None:
-    db.init_db()
 
 
 def _conv(session_id: str | None) -> Conversation:
